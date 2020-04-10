@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  weather_histogram:
+    build:
+      context: ./weather_histogram/
+      dockerfile: Dockerfile
+    ports:
+      - ${WEATHER_APP_PUBLISHED_PORT}:8050
+    volumes:
+      - weather_histogram_volume:/app/data
+    env_file:
+      - ./.env
+    environment:
+      - LAUNCHED_FROM_DOCKER_COMPOSE=1
+
+volumes:
+  weather_histogram_volume:
