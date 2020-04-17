@@ -2,6 +2,7 @@
 import os
 
 from flask import Flask
+from functools import lru_cache
 
 import dash
 import dash_html_components as html
@@ -45,6 +46,7 @@ app.layout = html.Div(
     ],
 )
 
+@lru_cache(maxsize = 4096)
 @app.callback([Output("output-2", "children"),Output('results','children')], [Input("input-weather-location", "value")])
 def input_triggers_nested(weather_location_value):
     
@@ -55,7 +57,7 @@ def input_triggers_nested(weather_location_value):
         api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
         search_location=str(weather_location_value),
         year=2019,
-        tp=24,
+        tp=1,
     )
     
     #fig_weather = pgr_hist.make_graph(df=df_weather_data, x='avgtempC')
@@ -73,16 +75,16 @@ def input_triggers_nested(weather_location_value):
         data=df_weather_data.reset_index().to_dict('records'),
     )
 
-    #sumary_df = df_weather_data.groupby(['avgtempC', 'maxtempC','mintempC']).size().to_frame(name='counts')
-    sumary_df = df_weather_data['avgtempC'].value_counts(dropna=False).to_frame().reset_index().rename(columns={"index": "°C", "avgtempC": "Anzahl Tage"})
-    #sumary_df = sumary_df['°C'].astype(int).to_dict().sort_values(by=['°C']) # Funktioniert so noch nicht!
+    # #sumary_df = df_weather_data.groupby(['avgtempC', 'maxtempC','mintempC']).size().to_frame(name='counts')
+    # sumary_df = df_weather_data['avgtempC'].value_counts(dropna=False).to_frame().reset_index().rename(columns={"index": "°C", "avgtempC": "Anzahl Tage"})
+    # #sumary_df = sumary_df['°C'].astype(int).to_dict().sort_values(by=['°C']) # Funktioniert so noch nicht!
 
-    sumary_table = dash_table.DataTable(
-        columns=[{'name': i, 'id': i} for i in sumary_df.columns],
-        data=sumary_df.to_dict('records'),
-    )
+    # sumary_table = dash_table.DataTable(
+    #     columns=[{'name': i, 'id': i} for i in sumary_df.columns],
+    #     data=sumary_df.to_dict('records'),
+    # )
     
-    return (response_text, [graph, sumary_table, data_table])
+    return (response_text, [graph, None, data_table])
 
 
 if __name__ == "__main__":
