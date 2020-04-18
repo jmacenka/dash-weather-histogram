@@ -1,31 +1,49 @@
 # -*- coding: utf-8 -*-
-import os
-
-from flask import Flask
-from functools import lru_cache
-
+# Import main framework modules
 import dash
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_bootstrap_components as dbc
 import dash_table
 from dash.exceptions import PreventUpdate
-
 from dash.dependencies import Input, Output, State
 
-# loadup .env
-server = Flask(__name__)
-if not os.environ.get('LAUNCHED_FROM_DOCKER_COMPOSE',False):
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(server.root_path,'..'))
+# Import helper modules
+import os
+from flask import Flask
+from functools import lru_cache
 
+# Import custom modules
 from weather_api.API import fetch_data
 from plotly_graph_renderers import hist as pgr_hist
+from settings import EXTERNAL_STYLESHEETS
 
+# Server settings
+FRAMEWORK_STYLESHEETS = [
+    dbc.themes.GRID,
+    dbc.themes.MATERIA,
+]
 
-app = dash.Dash(server=server)
+# Server initialization
+# loadup local .env if not started from docker
+server = Flask(__name__)
+if not os.environ.get('LAUNCHED_FROM_DOCKER_COMPOSE',False):
+    from random import randint
+    from dotenv import load_dotenv
+    load_dotenv(server.root_path)
 
+server.secret_key = os.environ.get('COVID_APP_SECRET_KEY', str(randint(0, 100000000000)))
+app = dash.Dash(
+    __name__, 
+    external_stylesheets=FRAMEWORK_STYLESHEETS+EXTERNAL_STYLESHEETS,
+    include_assets_files=True, 
+    server=server
+)
+app.title = 'Historic weather App'
+app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 
+# Application layout
 app.layout = html.Div(
     className='container',
     children=[
@@ -46,8 +64,13 @@ app.layout = html.Div(
     ],
 )
 
+# Callback deffinition
 @lru_cache(maxsize = 4096)
-@app.callback([Output("output-2", "children"),Output('results','children')], [Input("input-weather-location", "value")])
+@app.callback(
+    [Output("output-2", "children"),
+    Output('results','children')], 
+    [Input("input-weather-location", "value")],
+)
 def input_triggers_nested(weather_location_value):
     
     if weather_location_value is None:
@@ -74,18 +97,12 @@ def input_triggers_nested(weather_location_value):
         columns=[{'name': i, 'id': i} for i in df_weather_data.reset_index().columns],
         data=df_weather_data.reset_index().to_dict('records'),
     )
-
-    # #sumary_df = df_weather_data.groupby(['avgtempC', 'maxtempC','mintempC']).size().to_frame(name='counts')
-    # sumary_df = df_weather_data['avgtempC'].value_counts(dropna=False).to_frame().reset_index().rename(columns={"index": "°C", "avgtempC": "Anzahl Tage"})
-    # #sumary_df = sumary_df['°C'].astype(int).to_dict().sort_values(by=['°C']) # Funktioniert so noch nicht!
-
-    # sumary_table = dash_table.DataTable(
-    #     columns=[{'name': i, 'id': i} for i in sumary_df.columns],
-    #     data=sumary_df.to_dict('records'),
-    # )
     
-    return (response_text, [graph, None, data_table])
+    return (response_text, [graph, data_table])
 
-
-if __name__ == "__main__":
-    app.run_server(debug=False)
+# App launcher
+if __name__ == '__main__':
+    if not os.environ.get('LAUNCHED_FROM_DOCKER_COMPOSE',False):
+        app.run_server(debug=True, port=8055)
+    else:
+        app.server.run(host='0.0.0.0',debug=True, port=int(os.environ.get('WEATHER_APP_CONTAINER_EXPOSED_PORT',8050)), threaded=True)
