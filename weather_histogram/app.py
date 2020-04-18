@@ -14,9 +14,11 @@ from flask import Flask
 from functools import lru_cache
 
 # Import custom modules
+from settings import EXTERNAL_STYLESHEETS
 from weather_api.API import fetch_data
 from plotly_graph_renderers import hist as pgr_hist
-from settings import EXTERNAL_STYLESHEETS
+from components.Title import Title
+from components.Options import Options
 
 # Server settings
 FRAMEWORK_STYLESHEETS = [
@@ -44,23 +46,12 @@ app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 
 # Application layout
-app.layout = html.Div(
-    className='container',
+app.layout = dbc.Jumbotron(
+    id='root',
     children=[
-        dcc.Loading(id="loading-1", children=[html.Div(id="output-1")], type="default"),
-        html.Div(
-            [
-                dcc.Loading(
-                    id="loading-2",
-                    children=[html.Div([html.Div(id="output-2")])],
-                    type="circle",
-                ),
-                dcc.Input(id="input-weather-location", placeholder="Input some place to fetch data for... e.G. Munich", debounce=True),
-            ]
-        ),
-        html.Div(
-            id='results',
-        ),
+        Title(id='title',title_text='Test'),
+        Options(),
+        html.Div(id='results'),
     ],
 )
 
@@ -82,10 +73,7 @@ def input_triggers_nested(weather_location_value):
         year=2019,
         tp=1,
     )
-    
-    #fig_weather = pgr_hist.make_graph(df=df_weather_data, x='avgtempC')
     fig_weather = pgr_hist.make_graph(df=df_weather_data)
-
     response_text = f'Displaying Data for: {response_city}'
 
     graph = dcc.Graph(
