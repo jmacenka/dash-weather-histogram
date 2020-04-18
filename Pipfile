@@ -4,12 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
 
 [packages]
 dash = "*"
 python-dotenv = "*"
 requests = "*"
 pandas = "*"
+dash-bootstrap-components = "*"
 
 [requires]
 python_version = "3"
