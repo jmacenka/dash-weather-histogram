@@ -9,8 +9,11 @@ from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, Output, State
 
 # Import helper modules
-import os
+import os, io, base64
+import pandas as pd
 from flask import Flask
+from random import randint
+from datetime import datetime
 from functools import lru_cache
 
 # Import custom modules
@@ -20,6 +23,7 @@ from plotly_graph_renderers import hist as pgr_hist
 from components.Header import Header, Header_callbacks
 from components.Options import Options
 from components.Results import Results
+from components.Footer import Footer
 
 # Server settings
 FRAMEWORK_STYLESHEETS = [
@@ -30,12 +34,8 @@ FRAMEWORK_STYLESHEETS = [
 # Server initialization
 # loadup local .env if not started from docker
 server = Flask(__name__)
-if not os.environ.get('LAUNCHED_FROM_DOCKER_COMPOSE',False):
-    from random import randint
-    from dotenv import load_dotenv
-    load_dotenv(server.root_path)
 
-server.secret_key = os.environ.get('WEATHER_APP_SECRET_KEY', str(randint(0, 100000000000)))
+server.secret_key = os.environ.get('WEATHER_APP_SECRET_KEY', str(randint(0, 10000000000)))
 app = dash.Dash(
     __name__, 
     external_scripts=EXTERNAL_SCRIPTS,
@@ -80,6 +80,10 @@ app.layout = dbc.Jumbotron(
             id='results',
         ),
         
+        Footer(
+            id='footer',
+            footer_text='App by Jan Macenka - 2020-04-11',
+        ),
     ],
 )
 
@@ -88,31 +92,35 @@ app.layout = dbc.Jumbotron(
 # Input to first API Pull
 @app.callback(
     [Output('options-search-output','value'),
-    Output('options-search-button','disabled')],
+    Output('options-search-output','disabled'),
+    Output('options-search-button','disabled'),
+    Output('google-iframe','hidden'),
+    Output('google-iframe','src'),],
     [Input('options-search-input','value'),],
 )
 def search_input_to_location(weather_location_value):
     if weather_location_value is None:
-        return [' ', True]
+        return [' ', True, True, True, None]
     elif len(weather_location_value) < 4:
-        return [' ', True]
-    location = query_location(
+        return [' ', True, True, True, None]
+    location, maps_url = query_location(
         api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
         search_location=str(weather_location_value),
     )
     if location is None:
-        return [' ', True]
+        return [' ', True, True, True, None]
     else:
-        return [location, False]
+        return [location, False, False, False, maps_url]
 
 # Update all outputs after request
 @lru_cache(maxsize = 4096)
 @app.callback(
     [Output('results','children'),], 
     [Input("options-search-button", "n_clicks"),],
-    [State("options-search-input", "value")]
+    [State("options-search-input", "value"),
+    State('options-search-output','value'),]
 )
-def input_triggers_nested(n_clicks, weather_location_value):    
+def input_triggers_nested(n_clicks, weather_location_value, found_location):    
     if weather_location_value is None:
         raise PreventUpdate
     
@@ -122,26 +130,44 @@ def input_triggers_nested(n_clicks, weather_location_value):
         year=2019,
         tp=1,
     )
-        
-    result_tabs =   dbc.Tabs(
+    
+    df_metadata = pd.DataFrame(
+        {
+            'Beschreibung':[f'Die Wetterdaten wurde über folgende API bezogen: {API_INFO_URL}'],
+            'Erstelldatum':[str(datetime.now().strftime('%d.%m.%Y, %H:%M'))],
+            'Suchbegriff':[str(weather_location_value)],
+            'Gefundener Ort':[str(found_location)],
+        }
+    ).T
+    
+    xlsx_io = io.BytesIO()
+    with pd.ExcelWriter(xlsx_io, engine='xlsxwriter') as writer:
+        df_weather_data.to_excel(writer, sheet_name=weather_location_value)
+        df_weather_data.describe().to_excel(writer, sheet_name='Analyse')
+        df_metadata.to_excel(writer, sheet_name='Metadaten')
+    xlsx_io.seek(0)
+    # https://en.wikipedia.org/wiki/Data_URI_scheme
+    media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    data = base64.b64encode(xlsx_io.read()).decode("utf-8")
+    href_data_downloadable = f'data:{media_type};base64,{data}'
+    
+    result_tabs = dbc.Tabs(
         className='justify-content',
         children=[
             dbc.Tab(
                 className='card py-5 px-2',
-                id=f'{id}-tab-graph',
-                label='Graph',
+                id=f'{id}-tab-analysis',
+                label='Analyse',
                 children=[
+                    html.H1(
+                        id='headline',
+                        className='text-center text-muted',
+                        children=found_location,
+                    ),
                     dcc.Graph(
                         id='graph',
                         figure=pgr_hist.make_graph(df=df_weather_data),
                     ),
-                ],
-            ),
-            dbc.Tab(
-                className='card py-5 px-2',
-                id=f'{id}-tab-analysis',
-                label='Analysis',
-                children=[
                     dash_table.DataTable(
                         columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
                         data=df_weather_data.describe().reset_index().to_dict('records'),
@@ -151,8 +177,24 @@ def input_triggers_nested(n_clicks, weather_location_value):
             dbc.Tab(
                 className='card py-5 px-2',
                 id=f'{id}-tab-data',
-                label='Data',
+                label='Daten',
                 children=[
+                    html.A(
+                        id='excel-download',
+                        download=f"{datetime.now().strftime('%Y%m%d%H%m')}_Wetterdaten_{found_location.replace('>','_').replace(' ','')}.xlsx",
+                        href=href_data_downloadable,
+                        target="_blank",
+                        className='centered',
+                        children=[
+                            dbc.Button(
+                                className='col-12',
+                                id='excel-download-button',
+                                color='primary',
+                                children=['Als EXCEL-Datenblatt herunterladen']
+                            ),
+                            
+                        ],
+                    ),
                     dash_table.DataTable(
                         columns=[{'name': i, 'id': i} for i in df_weather_data.reset_index().columns],
                         data=df_weather_data.reset_index().to_dict('records'),
@@ -182,4 +224,4 @@ if __name__ == '__main__':
     if not os.environ.get('LAUNCHED_FROM_DOCKER_COMPOSE',False):
         app.run_server(debug=True, port=8055)
     else:
-        app.server.run(host='0.0.0.0',debug=True, port=int(os.environ.get('WEATHER_APP_CONTAINER_EXPOSED_PORT',8050)), threaded=True)
+        app.server.run(host='0.0.0.0',debug=False, port=int(os.environ.get('WEATHER_APP_CONTAINER_EXPOSED_PORT',8050)), threaded=True)

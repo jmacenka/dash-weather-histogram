@@ -12,6 +12,7 @@ python-dotenv = "*"
 requests = "*"
 pandas = "*"
 dash-bootstrap-components = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3"

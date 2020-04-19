@@ -21,6 +21,14 @@ def Results(
                 className=className,
                 children=children,
             ),
+            html.Iframe(
+                id='google-iframe',
+                className='container',
+                width='400rem',
+                height='400rem',
+                hidden=True,
+                src='',
+            ),
         ],
     )
 

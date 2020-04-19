@@ -27,10 +27,10 @@ def Options(
                 className='row',
                 children=[
                     dbc.FormGroup(
-                        className='col-md-4',
+                        className='col-md-5',
                         children=[
                             html.Label(
-                                className='mx-5 align-text-bottom text-muted',
+                                className='mx-2 align-text-bottom text-muted',
                                 htmlFor=f'{id}-search-input',
                                 children=['Ort-Suche'],
                             ),
@@ -38,6 +38,7 @@ def Options(
                                 id=f'{id}-search-input',
                                 type='text',
                                 className='text-justify bg-light p-1 border rounded m-2',
+                                style={'height':'50%'},
                                 placeholder="Ortsname eingeben...", 
                                 debounce=True,
                             ),
@@ -47,7 +48,7 @@ def Options(
                         className='col-md-5',
                         children=[
                             html.Label(
-                                className='mx-5 align-text-bottom text-muted',
+                                className='mx-2 align-text-bottom text-muted',
                                 htmlFor=f'{id}-search-output',
                                 children=['Gefundener Ort'],
                             ),
@@ -55,6 +56,7 @@ def Options(
                                 id=f'{id}-search-output',
                                 type='text',
                                 className='p-1 text-dark text-center align-middle border rounded m-2',
+                                style={'height':'50%'},
                                 disabled=True,
                                 value='',
                             ),
@@ -64,16 +66,17 @@ def Options(
                         className='col-md-2',
                         children=[
                             html.Label(
-                                className='mx-5 align-text-bottom text-muted',
+                                className='mx-2 align-text-bottom text-muted',
                                 htmlFor=f'{id}-search-button',
-                                children=[' '],
+                                children=['Daten'],
                             ),
                             dbc.Button(
                                 id=f'{id}-search-button',
-                                className='inline',
+                                className='col-12 shadow-none',
                                 disabled=True,
                                 color='primary',
-                                children=['Daten laden'],
+                                style={'height':'50%'},
+                                children=['Laden'],
                             ),
                         ],
                     ),

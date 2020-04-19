@@ -167,3 +167,4 @@ dmypy.json
 results*
 __pycache__
 .vscode
+*.xls*

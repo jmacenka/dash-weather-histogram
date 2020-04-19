@@ -4,7 +4,7 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_table
 
-BUTTON_STYLE = 'btn btn-secondary text-primary'
+BUTTON_STYLE = 'btn btn-primary text-primary'
 
 def Header(
         id:str='title',
