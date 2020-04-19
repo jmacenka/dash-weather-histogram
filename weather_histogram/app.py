@@ -14,11 +14,12 @@ from flask import Flask
 from functools import lru_cache
 
 # Import custom modules
-from settings import EXTERNAL_STYLESHEETS
-from weather_api.API import fetch_data
+from settings import EXTERNAL_STYLESHEETS, EXTERNAL_SCRIPTS
+from weather_api.API import fetch_data, query_location, API_INFO_URL
 from plotly_graph_renderers import hist as pgr_hist
-from components.Title import Title
+from components.Header import Header, Header_callbacks
 from components.Options import Options
+from components.Results import Results
 
 # Server settings
 FRAMEWORK_STYLESHEETS = [
@@ -34,36 +35,84 @@ if not os.environ.get('LAUNCHED_FROM_DOCKER_COMPOSE',False):
     from dotenv import load_dotenv
     load_dotenv(server.root_path)
 
-server.secret_key = os.environ.get('COVID_APP_SECRET_KEY', str(randint(0, 100000000000)))
+server.secret_key = os.environ.get('WEATHER_APP_SECRET_KEY', str(randint(0, 100000000000)))
 app = dash.Dash(
     __name__, 
+    external_scripts=EXTERNAL_SCRIPTS,
     external_stylesheets=FRAMEWORK_STYLESHEETS+EXTERNAL_STYLESHEETS,
     include_assets_files=True, 
     server=server
 )
-app.title = 'Historic weather App'
+app.title = 'Temperaturhäufigkeit'
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
+
+# Helper functions
 
 # Application layout
 app.layout = dbc.Jumbotron(
     id='root',
+    className='container my-5',
     children=[
-        Title(id='title',title_text='Test'),
-        Options(),
-        html.Div(id='results'),
+        
+        Header(
+            title_text='App für Temperaturhäufigkeit nach Ort',
+            
+            description_markdown=f"""
+            Mit dieser Applikation kannst du nach den stündlichen Temperaturwerten für einen beliebigen Ort und ein
+            beliebiges Jahr suchen.
+            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL}) geladen und in stündliche Werte aufbereitet.
+            Anschließend können die Daten visuell analysiert und in tabellenform heruntergeladen werden.
+            
+            Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.
+            Wenn diese Erschöpft sind, muss bis zum nächsten Tag gewartet werden.
+            """,
+        ),
+        
+        Options(
+            id='options',
+            className='container p-2 rounded'
+        ),
+        
+        Results(
+            id='results',
+        ),
+        
     ],
 )
 
 # Callback deffinition
+
+# Input to first API Pull
+@app.callback(
+    [Output('options-search-output','value'),
+    Output('options-search-button','disabled')],
+    [Input('options-search-input','value'),],
+)
+def search_input_to_location(weather_location_value):
+    if weather_location_value is None:
+        return [' ', True]
+    elif len(weather_location_value) < 4:
+        return [' ', True]
+    location = query_location(
+        api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
+        search_location=str(weather_location_value),
+    )
+    if location is None:
+        return [' ', True]
+    else:
+        return [location, False]
+
+# Update all outputs after request
 @lru_cache(maxsize = 4096)
 @app.callback(
-    [Output("output-2", "children"),
-    Output('results','children')], 
-    [Input("input-weather-location", "value")],
+    [Output('results-tab-graph','children'),
+    Output('results-tab-analysis','children'),
+    Output('results-tab-data','children'),], 
+    [Input("options-search-button", "n_clicks"),],
+    [State("options-search-input", "value")]
 )
-def input_triggers_nested(weather_location_value):
-    
+def input_triggers_nested(n_clicks, weather_location_value):    
     if weather_location_value is None:
         raise PreventUpdate
     
@@ -81,12 +130,29 @@ def input_triggers_nested(weather_location_value):
         figure=fig_weather,
     )
     
-    data_table = dash_table.DataTable(
+    analysis = dash_table.DataTable(
+        columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
+        data=df_weather_data.describe().reset_index().to_dict('records'),
+    )
+    
+    data = dash_table.DataTable(
         columns=[{'name': i, 'id': i} for i in df_weather_data.reset_index().columns],
         data=df_weather_data.reset_index().to_dict('records'),
     )
     
-    return (response_text, [graph, data_table])
+    return (graph, analysis, data)
+
+# Toogle app-information-modal
+@app.callback(
+    Output("app-information-modal", "is_open"),
+    [Input("open-modal-app-information", "n_clicks"), 
+    Input("close-modal-app-information", "n_clicks"),],
+    [State("app-information-modal", "is_open"),],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 # App launcher
 if __name__ == '__main__':

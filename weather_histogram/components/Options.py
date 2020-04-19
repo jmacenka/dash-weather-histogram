@@ -4,38 +4,80 @@ import dash_bootstrap_components as dbc
 import dash_table
 from random import randint
 
+BUTTON_STYLE = 'btn btn-secondary text-primary'
+
 def Options(
-    ids:list=['loading','output'],
-):
+        id:str='options',
+        className:str='container',
+    ):
+    """
+    Options holds all the possible Options for the UI.
+
+    Keyword Arguments:
+        ids {list} -- List of strings with IDs for the enclosed elements (default: {['options','input-weather-location']})
+
+    Returns:
+        html.Div -- Returns a dash.html.Div
+    """
     return html.Div(
-        className='container',
+        id=id,
+        className=className+' container',
         children=[
-            dcc.Loading(
-                id=f"{ids[0]}-1", 
-                type="default",
-                children=[
-                    html.Div(
-                        id=f"{ids[1]}-1"
-                    ),
-                ], 
-            ),
             html.Div(
-                [
-                    dcc.Loading(
-                        id=f"{ids[0]}-2",
-                        type="circle",
+                className='row',
+                children=[
+                    dbc.FormGroup(
+                        className='col-md-4',
                         children=[
-                            html.Div(
-                                children=[
-                                    html.Div(
-                                        id=f"{ids[1]}-2"
-                                    ),
-                                ],
+                            html.Label(
+                                className='mx-5 align-text-bottom text-muted',
+                                htmlFor=f'{id}-search-input',
+                                children=['Ort-Suche'],
+                            ),
+                            dbc.Input(
+                                id=f'{id}-search-input',
+                                type='text',
+                                className='text-justify bg-light p-1 border rounded m-2',
+                                placeholder="Ortsname eingeben...", 
+                                debounce=True,
                             ),
                         ],
                     ),
-                    dcc.Input(id="input-weather-location", placeholder="Input some place to fetch data for... e.G. Munich", debounce=True),
-                ]
+                    dbc.FormGroup(
+                        className='col-md-5',
+                        children=[
+                            html.Label(
+                                className='mx-5 align-text-bottom text-muted',
+                                htmlFor=f'{id}-search-output',
+                                children=['Gefundener Ort'],
+                            ),
+                            dbc.Input(
+                                id=f'{id}-search-output',
+                                type='text',
+                                className='p-1 text-dark text-center align-middle border rounded m-2',
+                                disabled=True,
+                                value='',
+                            ),
+                        ],
+                    ),
+                    dbc.FormGroup(
+                        className='col-md-2',
+                        children=[
+                            html.Label(
+                                className='mx-5 align-text-bottom text-muted',
+                                htmlFor=f'{id}-search-button',
+                                children=[' '],
+                            ),
+                            dbc.Button(
+                                id=f'{id}-search-button',
+                                className='inline',
+                                disabled=True,
+                                color='primary',
+                                children=['Daten laden'],
+                            ),
+                        ],
+                    ),
+                ],
             ),
         ],
     )
