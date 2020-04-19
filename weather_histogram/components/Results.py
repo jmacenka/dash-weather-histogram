@@ -16,34 +16,11 @@ def Results(
         className='m-5',
         type=loading_icon_type,
         children=[
-            dbc.Tabs(
-                className='justify-content',
-                children=[
-                    dbc.Tab(
-                        className='card py-5 px-2',
-                        id=f'{id}-tab-graph',
-                        label='Graph',
-                        children=['Noch keine Daten'],
-                    ),
-                    dbc.Tab(
-                        className='card py-5 px-2',
-                        id=f'{id}-tab-analysis',
-                        label='Analysis',
-                        children=['Noch keine Daten'],
-                    ),
-                    dbc.Tab(
-                        className='card py-5 px-2',
-                        id=f'{id}-tab-data',
-                        label='Data',
-                        children=['Noch keine Daten'],
-                    ),
-                ],
+            html.Div(
+                id=id,
+                className=className,
+                children=children,
             ),
-            # html.Div(
-            #     id=id,
-            #     className=className,
-            #     children=children,
-            # ),
         ],
     )
 

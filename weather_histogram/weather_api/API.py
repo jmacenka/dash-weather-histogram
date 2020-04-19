@@ -30,7 +30,6 @@ def response_to_df(response):
         'windspeedKmph':'windspeed_kmh'
     }
     required_columns = dict_column_map.keys()
-    response_city = None
     df_weather = pd.DataFrame(columns=dict_column_map.values()).set_index('timestamp')
     df_weather.index = pd.to_datetime(df_weather.index, infer_datetime_format=True)
     if response.ok:
@@ -42,9 +41,8 @@ def response_to_df(response):
             df_temp['timestamp'] = df_temp['time'].apply(lambda x: date.replace(hour=int(int(x)/100)))
             df_temp = df_temp[required_columns].rename(columns=dict_column_map)
             df_reformed = df_reformed.append(df_temp)
-        df_weather = df_reformed.set_index('timestamp')
-        response_city = response.json()['data']['request'][0]['query']        
-    return response_city, df_weather
+        df_weather = df_reformed.set_index('timestamp')      
+    return df_weather
 
 def query_location(api_key:str, search_location:str='Munich'):
     url = f'http://api.worldweatheronline.com/premium/v1/weather.ashx?key={api_key}&q={quote(search_location)}&format=json&num_of_days=0&includelocation=yes'
@@ -70,22 +68,20 @@ def fetch_data(api_key:str, search_location:str='Munich', year:int=None, tp:int=
     end_date = f'{year}-01-31'
     url = f'http://api.worldweatheronline.com/premium/v1/past-weather.ashx?key={api_key}&q={quote(search_location)}&format=json&date={start_date}&enddate={end_date}&tp={tp}'
     response = requests.get(url)
-    response_city, df_weather = response_to_df(response)
-    if response_city is None:
-        return None, response_city
+    df_weather = response_to_df(response)
     for month, last_day in MONTH_LAST_DAY:
         start_date = f'{year}-{month}-01'
         end_date = f'{year}-{month}-{last_day}'
         url = f'http://api.worldweatheronline.com/premium/v1/past-weather.ashx?key={api_key}&q={quote(search_location)}&format=json&date={start_date}&enddate={end_date}&tp={tp}'
         response = requests.get(url)
-        _, df_update = response_to_df(response)
+        df_update = response_to_df(response)
         if not df_update.empty:
             df_weather = df_weather.append(df_update)
     if not df_weather.empty:
         df_weather.index = pd.to_datetime(df_weather.index, infer_datetime_format=True)
-        return df_weather, response_city
+        return df_weather
     else:
-        return pd.DataFrame(), response_city
+        return pd.DataFrame()
 
 
 # #TESTING:

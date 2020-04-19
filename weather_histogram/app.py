@@ -66,6 +66,8 @@ app.layout = dbc.Jumbotron(
             
             Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.
             Wenn diese Erschöpft sind, muss bis zum nächsten Tag gewartet werden.
+            
+            Gib zunächst einen Ortsname im Suchfeld links ein, dann überprüfe ob der gefundene Ort korrekt ist. Wenn ja, clicke auf Daten laden.
             """,
         ),
         
@@ -106,9 +108,7 @@ def search_input_to_location(weather_location_value):
 # Update all outputs after request
 @lru_cache(maxsize = 4096)
 @app.callback(
-    [Output('results-tab-graph','children'),
-    Output('results-tab-analysis','children'),
-    Output('results-tab-data','children'),], 
+    [Output('results','children'),], 
     [Input("options-search-button", "n_clicks"),],
     [State("options-search-input", "value")]
 )
@@ -116,31 +116,54 @@ def input_triggers_nested(n_clicks, weather_location_value):
     if weather_location_value is None:
         raise PreventUpdate
     
-    df_weather_data, response_city = fetch_data(
+    df_weather_data = fetch_data(
         api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
         search_location=str(weather_location_value),
         year=2019,
         tp=1,
     )
-    fig_weather = pgr_hist.make_graph(df=df_weather_data)
-    response_text = f'Displaying Data for: {response_city}'
-
-    graph = dcc.Graph(
-        id='graph',
-        figure=fig_weather,
-    )
+        
+    result_tabs =   dbc.Tabs(
+        className='justify-content',
+        children=[
+            dbc.Tab(
+                className='card py-5 px-2',
+                id=f'{id}-tab-graph',
+                label='Graph',
+                children=[
+                    dcc.Graph(
+                        id='graph',
+                        figure=pgr_hist.make_graph(df=df_weather_data),
+                    ),
+                ],
+            ),
+            dbc.Tab(
+                className='card py-5 px-2',
+                id=f'{id}-tab-analysis',
+                label='Analysis',
+                children=[
+                    dash_table.DataTable(
+                        columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
+                        data=df_weather_data.describe().reset_index().to_dict('records'),
+                    ),
+                ],
+            ),
+            dbc.Tab(
+                className='card py-5 px-2',
+                id=f'{id}-tab-data',
+                label='Data',
+                children=[
+                    dash_table.DataTable(
+                        columns=[{'name': i, 'id': i} for i in df_weather_data.reset_index().columns],
+                        data=df_weather_data.reset_index().to_dict('records'),
+                    ),
+                ],
+            ),
+        ],
+    ),
     
-    analysis = dash_table.DataTable(
-        columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
-        data=df_weather_data.describe().reset_index().to_dict('records'),
-    )
     
-    data = dash_table.DataTable(
-        columns=[{'name': i, 'id': i} for i in df_weather_data.reset_index().columns],
-        data=df_weather_data.reset_index().to_dict('records'),
-    )
-    
-    return (graph, analysis, data)
+    return result_tabs
 
 # Toogle app-information-modal
 @app.callback(
