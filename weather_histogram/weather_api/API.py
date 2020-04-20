@@ -45,20 +45,6 @@ def query_location(api_key:str, search_location:str='Munich'):
         location = None
     return (location, maps_url)
 
-def response_to_df_old(response):
-    required_columns = DICT_COLUMN_MAP.keys()
-    if response.ok:
-        df_weather = pd.DataFrame(response.json()['data']['weather'], dtype=float).set_index('date')
-        df_weather.index = pd.to_datetime(df_weather.index, infer_datetime_format=True)
-        df_reformed = pd.DataFrame(columns=DICT_COLUMN_MAP.values(), dtype=float)
-        for date, v in df_weather['hourly'].items():
-            df_temp = pd.DataFrame(v)
-            df_temp['timestamp'] = df_temp['time'].apply(lambda x: date.replace(hour=int(int(x)/100)))
-            df_temp = df_temp[required_columns].rename(columns=DICT_COLUMN_MAP)
-            df_reformed = df_reformed.append(df_temp)
-        df_weather = df_reformed.set_index('timestamp')      
-    return df_weather
-
 def response_to_df(response):
     df_weather = pd.DataFrame()
     if response.ok:        
@@ -103,11 +89,3 @@ def fetch_data(api_key:str, search_location:str='Munich', year:int=None, tp:int=
         return df_weather
     else:
         return pd.DataFrame()
-
-
-# #TESTING:
-# search_location='Kirchanschöring'
-# api_key='ff5b9e1041ca4317add75758200904'
-# tp= 1
-# df, response_city = fetch_data(api_key=api_key,search_location=search_location,year=2018,tp=tp)
-# print(response_city, df)
