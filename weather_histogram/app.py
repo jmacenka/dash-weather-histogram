@@ -140,9 +140,13 @@ def input_triggers_nested(n_clicks, weather_location_value, found_location):
         }
     ).T
     
+    df_count = df_weather_data[df_weather_data.columns[0]].value_counts().to_frame().reset_index()
+    df_count.columns = ['Temperatur °C','Stunden im Jahr']
+    
     xlsx_io = io.BytesIO()
     with pd.ExcelWriter(xlsx_io, engine='xlsxwriter') as writer:
         df_weather_data.to_excel(writer, sheet_name=weather_location_value)
+        df_count.to_excel(writer, sheet_name='Jahresverteilung')
         df_weather_data.describe().to_excel(writer, sheet_name='Analyse')
         df_metadata.to_excel(writer, sheet_name='Metadaten')
     xlsx_io.seek(0)
@@ -171,6 +175,10 @@ def input_triggers_nested(n_clicks, weather_location_value, found_location):
                     dash_table.DataTable(
                         columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
                         data=df_weather_data.describe().reset_index().to_dict('records'),
+                    ),
+                    dash_table.DataTable(
+                        columns=[{'name': i, 'id': i} for i in df_count.reset_index().columns],
+                        data=df_count.reset_index().to_dict('records'),
                     ),
                 ],
             ),
