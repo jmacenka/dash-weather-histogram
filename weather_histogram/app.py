@@ -28,7 +28,7 @@ from components.Footer import Footer
 # Server settings
 FRAMEWORK_STYLESHEETS = [
     dbc.themes.GRID,
-    dbc.themes.MATERIA,
+    dbc.themes.SPACELAB,
 ]
 
 # Server initialization
@@ -61,7 +61,7 @@ app.layout = dbc.Jumbotron(
             description_markdown=f"""
             Mit dieser Applikation kannst du nach den stündlichen Temperaturwerten für einen beliebigen Ort und ein
             beliebiges Jahr suchen.
-            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL}) geladen und in stündliche Werte aufbereitet.
+            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL}) geladen und stundengenau nach Häufigkeit aufbereitet.
             Anschließend können die Daten visuell analysiert und in tabellenform heruntergeladen werden.
             
             Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.
@@ -94,23 +94,24 @@ app.layout = dbc.Jumbotron(
     [Output('options-search-output','value'),
     Output('options-search-output','disabled'),
     Output('options-search-button','disabled'),
+    Output('options-search-button','outline'),
     Output('google-iframe','hidden'),
     Output('google-iframe','src'),],
     [Input('options-search-input','value'),],
 )
 def search_input_to_location(weather_location_value):
     if weather_location_value is None:
-        return [' ', True, True, True, None]
+        return [' ', True, True, True, True, None]
     elif len(weather_location_value) < 4:
-        return [' ', True, True, True, None]
+        return [' ', True, True, True, True, None]
     location, maps_url = query_location(
         api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
         search_location=str(weather_location_value),
     )
     if location is None:
-        return [' ', True, True, True, None]
+        return ['Nichts gefunden', True, True, True, True, None]
     else:
-        return [location, False, False, False, maps_url]
+        return [location, False, False, False, False, maps_url]
 
 # Update all outputs after request
 @lru_cache(maxsize = 4096)
@@ -129,6 +130,11 @@ def input_triggers_nested(n_clicks, weather_location_value, found_location):
         search_location=str(weather_location_value),
         year=2019,
         tp=1,
+    )
+    
+    location, maps_url = query_location(
+        api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
+        search_location=str(weather_location_value),
     )
     
     df_metadata = pd.DataFrame(
@@ -155,65 +161,48 @@ def input_triggers_nested(n_clicks, weather_location_value, found_location):
     data = base64.b64encode(xlsx_io.read()).decode("utf-8")
     href_data_downloadable = f'data:{media_type};base64,{data}'
     
-    result_tabs = dbc.Tabs(
-        className='justify-content',
+    results =  html.Div(
+        id=f'{id}-display',
+        className='card py-5 px-2',
         children=[
-            dbc.Tab(
-                className='card py-5 px-2',
-                id=f'{id}-tab-analysis',
-                label='Analyse',
+            # html.H1(
+            #     id='headline',
+            #     className='text-center text-muted',
+            #     children=found_location,
+            # ),
+            dcc.Graph(
+                id='graph',
+                figure=pgr_hist.make_graph(df=df_weather_data,location_name=location),
+                # figure=pgr_hist.make_graph([df_weather_data])
+            ),
+            dash_table.DataTable(
+                columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
+                data=df_weather_data.describe().reset_index().to_dict('records'),
+            ),
+            html.A(
+                id='excel-download',
+                download=f"{datetime.now().strftime('%Y%m%d%H%m')}_Wetterdaten_{found_location.replace('>','_').replace(' ','')}.xlsx",
+                href=href_data_downloadable,
+                target="_blank",
+                className='centered',
                 children=[
-                    html.H1(
-                        id='headline',
-                        className='text-center text-muted',
-                        children=found_location,
+                    dbc.Button(
+                        id='excel-download-button',
+                        className='col-12 shadow-none',
+                        color='primary',
+                        children=['Als EXCEL-Datenblatt herunterladen']
                     ),
-                    dcc.Graph(
-                        id='graph',
-                        figure=pgr_hist.make_graph(df=df_weather_data),
-                    ),
-                    dash_table.DataTable(
-                        columns=[{'name': i, 'id': i} for i in df_weather_data.describe().reset_index().columns],
-                        data=df_weather_data.describe().reset_index().to_dict('records'),
-                    ),
-                    dash_table.DataTable(
-                        columns=[{'name': i, 'id': i} for i in df_count.reset_index().columns],
-                        data=df_count.reset_index().to_dict('records'),
-                    ),
+                    
                 ],
             ),
-            dbc.Tab(
-                className='card py-5 px-2',
-                id=f'{id}-tab-data',
-                label='Daten',
-                children=[
-                    html.A(
-                        id='excel-download',
-                        download=f"{datetime.now().strftime('%Y%m%d%H%m')}_Wetterdaten_{found_location.replace('>','_').replace(' ','')}.xlsx",
-                        href=href_data_downloadable,
-                        target="_blank",
-                        className='centered',
-                        children=[
-                            dbc.Button(
-                                className='col-12',
-                                id='excel-download-button',
-                                color='primary',
-                                children=['Als EXCEL-Datenblatt herunterladen']
-                            ),
-                            
-                        ],
-                    ),
-                    dash_table.DataTable(
-                        columns=[{'name': i, 'id': i} for i in df_weather_data.reset_index().columns],
-                        data=df_weather_data.reset_index().to_dict('records'),
-                    ),
-                ],
+            dash_table.DataTable(
+                columns=[{'name': i, 'id': i} for i in df_count.reset_index().columns],
+                data=df_count.reset_index().to_dict('records'),
             ),
         ],
-    ),
+    )
     
-    
-    return result_tabs
+    return [results,]
 
 # Toogle app-information-modal
 @app.callback(

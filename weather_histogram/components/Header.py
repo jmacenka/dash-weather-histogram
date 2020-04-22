@@ -4,8 +4,6 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_table
 
-BUTTON_STYLE = 'btn btn-primary text-primary'
-
 def Header(
         id:str='title',
         className:str='text-justify text-center p-2',
@@ -41,7 +39,8 @@ def Header(
                 children=[
                     dbc.Button(
                         id="open-modal-app-information",
-                        className=BUTTON_STYLE,
+                        className='shadow-none',
+                        color='light',
                         children=["App information"], 
                     ),
                     dbc.Modal(
@@ -66,7 +65,8 @@ def Header(
                                 children=[
                                     dbc.Button(
                                         id="close-modal-app-information", 
-                                        className=BUTTON_STYLE,
+                                        className='shadow-none',
+                                        color='light',
                                         children=["Ok"],
                                     ),
                                 ],
