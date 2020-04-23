@@ -140,7 +140,7 @@ def input_triggers_nested(n_clicks, weather_location_value, found_location):
     df_metadata = pd.DataFrame(
         {
             'Beschreibung':[f'Die Wetterdaten wurde über folgende API bezogen: {API_INFO_URL}'],
-            'Erstelldatum':[str(datetime.now().strftime('%d.%m.%Y, %H:%M'))],
+            'Erstelldatum in utc+0':[str(datetime.now().strftime('%d.%m.%Y, %H:%M'))],
             'Suchbegriff':[str(weather_location_value)],
             'Gefundener Ort':[str(found_location)],
         }
