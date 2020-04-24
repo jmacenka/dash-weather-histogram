@@ -83,6 +83,7 @@ app.layout = dbc.Jumbotron(
         Footer(
             id='footer',
             footer_text='App by Jan Macenka - 2020-04-11',
+            footer_repo_link='https://github.com/jmacenka/dash-weather-histogram',
         ),
     ],
 )
