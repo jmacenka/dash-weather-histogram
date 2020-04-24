@@ -13,7 +13,7 @@ def Footer(
     **kwargs,
 ):
     
-    footer_children = [footer_text],
+    footer_children = [footer_text,]
     if not footer_repo_link is None:
         footer_children.append(
             dcc.Link(
