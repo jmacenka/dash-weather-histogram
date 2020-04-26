@@ -15,16 +15,17 @@ def Footer(
     
     footer_children = [footer_text,]
     if not footer_repo_link is None:
-        footer_children.append(
+        footer_children+=[
+            html.Br(),
             dcc.Link(
                 id='github-repo-link',
                 href=footer_repo_link,
+                target='_blank',
                 children=[
                     'App source code',
                     ],
                 )
-        )
-    footer_children.append(children)
+        ] + children
     
     return  html.Footer(
         id='footer-information',

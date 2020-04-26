@@ -37,7 +37,7 @@ def Options(
                             dbc.Input(
                                 id=f'{id}-search-input',
                                 type='text',
-                                className='text-justify text-center align-middle bg-light p-1 border rounded m-2',
+                                className='text-justify text-center align-middle p-1 border rounded m-2',
                                 style={'height':'50%'},
                                 placeholder="Ortsname eingeben...", 
                                 debounce=True,
