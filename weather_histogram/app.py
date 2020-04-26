@@ -69,6 +69,8 @@ app.layout = dbc.Jumbotron(
             
             Gib zunächst einen Ortsname im Suchfeld links ein, dann überprüfe ob der gefundene Ort korrekt ist. Wenn ja, clicke auf Daten laden.
             """,
+            
+            repo_link='https://github.com/jmacenka/dash-weather-histogram',
         ),
         
         Options(
@@ -83,7 +85,6 @@ app.layout = dbc.Jumbotron(
         Footer(
             id='footer',
             footer_text='App by Jan Macenka - 2020-04-11',
-            footer_repo_link='https://github.com/jmacenka/dash-weather-histogram',
         ),
     ],
 )

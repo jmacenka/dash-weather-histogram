@@ -10,6 +10,7 @@ def Header(
         title_text:str=None,
         description_markdown:str=None,
         children:list=list(),
+        repo_link:str='',
         **kwargs,
     ):    
     """
@@ -25,6 +26,33 @@ def Header(
     Returns:
         html.H1 -- Returns a dash.html.H1
     """
+    
+    footer_children = [        
+        dcc.Link(
+            id='github-repo-link-modal-link',
+            className='my-2',
+            href=repo_link,
+            target='_blank',
+            children=[
+                dbc.Button(
+                    id="github-repo-link-modal-btn", 
+                    className='shadow-none',
+                    color='light',
+                    children=["App source code"],
+                ),
+            ],
+        ),
+    ]  if repo_link else list()
+    
+    footer_children += [
+        dbc.Button(
+            id="close-modal-app-information", 
+            className='shadow-none',
+            color='light',
+            children=["Ok"],
+        ),
+    ]
+    
     return html.Div(
         id=id,
         className=className,
@@ -62,14 +90,8 @@ def Header(
                                 ],
                             ),
                             dbc.ModalFooter(
-                                children=[
-                                    dbc.Button(
-                                        id="close-modal-app-information", 
-                                        className='shadow-none',
-                                        color='light',
-                                        children=["Ok"],
-                                    ),
-                                ],
+                                className='inline',
+                                children=footer_children,
                             ),
                         ],
                     ),
