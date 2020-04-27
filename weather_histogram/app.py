@@ -50,11 +50,6 @@ app.scripts.config.serve_locally = True
 # Helper functions
 
 # Application layout
-content_children = [        
-        
-
-
-
 app.layout = dbc.Jumbotron(
     id='root',
     className='container my-5',
