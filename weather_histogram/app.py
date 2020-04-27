@@ -50,11 +50,7 @@ app.scripts.config.serve_locally = True
 # Helper functions
 
 # Application layout
-app.layout = dbc.Jumbotron(
-    id='root',
-    className='container my-5',
-    children=[
-        
+content_children = [        
         Header(
             title_text='App für Temperaturhäufigkeit nach Ort',
             
@@ -86,8 +82,19 @@ app.layout = dbc.Jumbotron(
             id='footer',
             footer_text='App by Jan Macenka - 2020-04-11',
         ),
-    ],
-)
+    ]
+
+if datetime.now() >= datetime(year=2020, month=6, day=8):
+    content_children[1] = html.H1(
+        id='outdated-message',
+        children=[f'Der Kostenlose Probe-Datenbank-Zugang für die Wetterdaten war begrenzt bis "08 Jun, 2020" und ist abgelaufen. Wenn du die App weiterhin verwenden willst, melde dich bei Jan Macenka.'],        
+    )
+
+app.layout = dbc.Jumbotron(
+    id='root',
+    className='container my-5',
+    children=content_children,
+)  
 
 # Callback deffinition
 
