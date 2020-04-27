@@ -51,6 +51,14 @@ app.scripts.config.serve_locally = True
 
 # Application layout
 content_children = [        
+        
+
+
+
+app.layout = dbc.Jumbotron(
+    id='root',
+    className='container my-5',
+    children=[
         Header(
             title_text='App für Temperaturhäufigkeit nach Ort',
             
@@ -82,18 +90,7 @@ content_children = [
             id='footer',
             footer_text='App by Jan Macenka - 2020-04-11',
         ),
-    ]
-
-if datetime.now() >= datetime(year=2020, month=6, day=8):
-    content_children[1] = html.H1(
-        id='outdated-message',
-        children=[f'Der Kostenlose Probe-Datenbank-Zugang für die Wetterdaten war begrenzt bis "08 Jun, 2020" und ist abgelaufen. Wenn du die App weiterhin verwenden willst, melde dich bei Jan Macenka.'],        
-    )
-
-app.layout = dbc.Jumbotron(
-    id='root',
-    className='container my-5',
-    children=content_children,
+    ],
 )  
 
 # Callback deffinition
@@ -133,6 +130,14 @@ def search_input_to_location(weather_location_value):
 def input_triggers_nested(n_clicks, weather_location_value, found_location):    
     if weather_location_value is None:
         raise PreventUpdate
+    
+    if datetime.now() >= datetime(year=2020, month=6, day=8):
+        expiration_message = html.H1(
+            id='outdated-message',
+            className='text-center text-muted m-5',
+            children=[f'Der Kostenlose Probe-Datenbank-Zugang für die Wetterdaten war begrenzt bis "08 Jun, 2020" und ist abgelaufen. Wenn du die App weiterhin verwenden willst, melde dich bei Jan Macenka.'],        
+        )
+        return [expiration_message,]
     
     df_weather_data = fetch_data(
         api_key=os.environ.get('WEATHER_APP_REMOTE_API_KEY'),
