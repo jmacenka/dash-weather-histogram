@@ -57,16 +57,16 @@ app.layout = dbc.Jumbotron(
         Header(
             title_text='App für Temperaturhäufigkeit nach Ort',
             
-            description_markdown=f'''
-            Mit dieser Applikation kannst du nach den stündlichen Temperaturwerten für einen beliebigen Ort und ein
-            beliebiges Jahr suchen.
-            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL})\{:target="_blank"\} geladen und stundengenau nach Häufigkeit aufbereitet.
-            Anschließend können die Daten visuell analysiert und in tabellenform heruntergeladen werden.
-            
-            Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.
-            Wenn diese Erschöpft sind, muss bis zum nächsten Tag gewartet werden.
-            
-            Gib zunächst einen Ortsname im Suchfeld links ein, dann überprüfe ob der gefundene Ort korrekt ist. Wenn ja, clicke auf Daten laden.
+            description_markdown=f'\
+            Mit dieser Applikation kannst du nach den stündlichen Temperaturwerten für einen beliebigen Ort und ein\
+            beliebiges Jahr suchen.\
+            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL})\{:target="_blank"\} geladen und stundengenau nach Häufigkeit aufbereitet.\
+            Anschließend können die Daten visuell analysiert und in tabellenform heruntergeladen werden.\
+            \
+            Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.\
+            Wenn diese Erschöpft sind, muss bis zum nächsten Tag gewartet werden.\
+            \
+            Gib zunächst einen Ortsname im Suchfeld links ein, dann überprüfe ob der gefundene Ort korrekt ist. Wenn ja, clicke auf Daten laden.\
             ''',
             
             repo_link='https://github.com/jmacenka/dash-weather-histogram',
