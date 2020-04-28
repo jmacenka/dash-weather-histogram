@@ -57,10 +57,10 @@ app.layout = dbc.Jumbotron(
         Header(
             title_text='App für Temperaturhäufigkeit nach Ort',
             
-            description_markdown=f'\
+            description_markdown = f'\
             Mit dieser Applikation kannst du nach den stündlichen Temperaturwerten für einen beliebigen Ort und ein\
             beliebiges Jahr suchen.\
-            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL})\{:target="_blank"\} geladen und stundengenau nach Häufigkeit aufbereitet.\
+            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL})'+'{:target="_blank"} geladen und stundengenau nach Häufigkeit aufbereitet.\
             Anschließend können die Daten visuell analysiert und in tabellenform heruntergeladen werden.\
             \
             Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.\
