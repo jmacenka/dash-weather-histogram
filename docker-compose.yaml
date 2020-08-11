@@ -11,6 +11,7 @@ services:
       - ./.env
     environment:
       - LAUNCHED_FROM_DOCKER_COMPOSE=1
+    restart: always
 
 volumes:
   weather_histogram_volume:
