@@ -17,7 +17,7 @@ from datetime import datetime
 from functools import lru_cache
 
 # Import custom modules
-from settings import EXTERNAL_STYLESHEETS, EXTERNAL_SCRIPTS
+from settings import EXTERNAL_STYLESHEETS, EXTERNAL_SCRIPTS, EXPIRATION_YEAR, EXPIRATOIN_MONTH, EXPIRATOIN_DAY
 from weather_api.API import fetch_data, query_location, API_INFO_URL
 from plotly_graph_renderers import hist as pgr_hist
 from components.Header import Header, Header_callbacks
@@ -60,7 +60,7 @@ app.layout = dbc.Jumbotron(
             description_markdown = f'\
             Mit dieser Applikation kannst du nach den stündlichen Temperaturwerten für einen beliebigen Ort und ein\
             beliebiges Jahr suchen.\
-            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL})'+'{:target="_blank"} geladen und stundengenau nach Häufigkeit aufbereitet.\
+            Die Daten werden dann von [Wetter-Datenbank]({API_INFO_URL}) geladen und stundengenau nach Häufigkeit aufbereitet.\
             Anschließend können die Daten visuell analysiert und in tabellenform heruntergeladen werden.\
             \
             Als Standard verwendet die App einen kostenfreien API-Key für die Wetter-Datenbank von Jan Macenka, der 500 Wetter-Abfragen pro Tag zulässt.\
@@ -126,11 +126,11 @@ def input_triggers_nested(n_clicks, weather_location_value, found_location):
     if weather_location_value is None:
         raise PreventUpdate
     
-    if datetime.now() >= datetime(year=2020, month=6, day=8):
+    if datetime.now() >= datetime(year=EXPIRATION_YEAR, month=EXPIRATOIN_MONTH, day=EXPIRATOIN_DAY):
         expiration_message = html.H1(
             id='outdated-message',
             className='text-center text-muted m-5',
-            children=[f'Der Kostenlose Probe-Datenbank-Zugang für die Wetterdaten war begrenzt bis "08 Jun, 2020" und ist abgelaufen. Wenn du die App weiterhin verwenden willst, melde dich bei Jan Macenka.'],        
+            children=[f'Der Kostenlose Probe-Datenbank-Zugang für die Wetterdaten war begrenzt bis "{EXPIRATOIN_DAY}.{EXPIRATOIN_MONTH}.{EXPIRATION_YEAR}" und ist abgelaufen. Wenn du die App weiterhin verwenden willst, melde dich bei Jan Macenka.'],        
         )
         return [expiration_message,]
     

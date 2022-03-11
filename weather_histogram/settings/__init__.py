@@ -9,3 +9,7 @@ EXTERNAL_STYLESHEETS = [
 EXTERNAL_SCRIPTS = [
     'https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.16.0/js/mdb.min.js',
 ]
+
+EXPIRATION_YEAR = 2025
+EXPIRATOIN_MONTH = 1
+EXPIRATOIN_DAY = 1
